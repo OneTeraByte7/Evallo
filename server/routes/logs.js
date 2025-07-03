@@ -1,94 +1,102 @@
 const express = require("express");
 const router = express.Router();
-const fs = require("fs");
-const path = require("path");
+const { readLogs, writeLogs } = require("../utils/db");
+const Ajv = require("ajv");
+const addFormats = require("ajv-formats");
+const ajv = new Ajv();
+addFormats(ajv);
 
-const logFilePath = path.join(__dirname, "../logs.json");
-
-const readLogs = () => {
-  const data = fs.readFileSync(logFilePath, "utf8");
-  return JSON.parse(data);
+// Log schema validator
+const logSchema = {
+  type: "object",
+  properties: {
+    level: { type: "string", enum: ["error", "warn", "info", "debug"] },
+    message: { type: "string" },
+    resourceId: { type: "string" },
+    timestamp: { type: "string", format: "date-time" },
+    traceId: { type: "string" },
+    spanId: { type: "string" },
+    commit: { type: "string" },
+    metadata: { type: "object" }
+  },
+  required: [
+    "level",
+    "message",
+    "resourceId",
+    "timestamp",
+    "traceId",
+    "spanId",
+    "commit",
+    "metadata"
+  ],
+  additionalProperties: false
 };
 
-const writeLogs = (logs) => {
-  fs.writeFileSync(logFilePath, JSON.stringify(logs, null, 2), "utf8");
-};
+const validateLog = ajv.compile(logSchema);
 
-
-router.post("/", (req, res) => {
+// POST /logs - ingest a log
+router.post("/", async (req, res) => {
   const log = req.body;
-
-  const requiredFields = [
-    "level", "message", "resourceId", "timestamp",
-    "traceId", "spanId", "commit", "metadata"
-  ];
-  for (const field of requiredFields) {
-    if (!log[field]) {
-      return res.status(400).json({ error: `Missing field: ${field}` });
-    }
+  if (!validateLog(log)) {
+    return res.status(400).json({ error: "Invalid log format", details: validateLog.errors });
   }
 
   try {
-    const logs = readLogs();
+    const logs = await readLogs();
     logs.push(log);
-    writeLogs(logs);
-    return res.status(201).json(log);
+    // Sort descending by timestamp so latest logs first
+    logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    await writeLogs(logs);
+    res.status(201).json(log);
   } catch (err) {
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error ingesting log:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
+// Helper to filter logs based on query params
+function filterLogs(logs, query) {
+  return logs.filter((log) => {
+    // All filters combined with AND
 
-router.get("/", (req, res) => {
+    // level exact match
+    if (query.level && log.level !== query.level) return false;
+
+    // message full-text, case-insensitive
+    if (query.message && !log.message.toLowerCase().includes(query.message.toLowerCase())) return false;
+
+    // resourceId partial case-insensitive match
+    if (query.resourceId && !log.resourceId.toLowerCase().includes(query.resourceId.toLowerCase())) return false;
+
+    // traceId exact match
+    if (query.traceId && log.traceId !== query.traceId) return false;
+
+    // spanId exact match
+    if (query.spanId && log.spanId !== query.spanId) return false;
+
+    // commit exact match
+    if (query.commit && log.commit !== query.commit) return false;
+
+    // timestamp range filtering
+    if (query.timestamp_start && new Date(log.timestamp) < new Date(query.timestamp_start)) return false;
+    if (query.timestamp_end && new Date(log.timestamp) > new Date(query.timestamp_end)) return false;
+
+    return true;
+  });
+}
+
+// GET /logs - list logs with filtering
+router.get("/", async (req, res) => {
   try {
-    const logs = readLogs();
+    const logs = await readLogs();
 
-    
-    const {
-      level,
-      message,
-      resourceId,
-      timestamp_start,
-      timestamp_end,
-      traceId,
-      spanId,
-      commit,
-    } = req.query;
+    const filtered = filterLogs(logs, req.query);
 
-   
-    const passesFilters = (log) => {
-      if (level && log.level !== level) return false;
-
-      if (message && !log.message.toLowerCase().includes(message.toLowerCase()))
-        return false;
-
-      if (resourceId && log.resourceId !== resourceId) return false;
-
-      // Timestamp range (inclusive)
-      if (timestamp_start || timestamp_end) {
-        const ts = new Date(log.timestamp).getTime();
-        if (timestamp_start && ts < new Date(timestamp_start).getTime()) return false;
-        if (timestamp_end && ts > new Date(timestamp_end).getTime()) return false;
-      }
-
-      if (traceId && log.traceId !== traceId) return false;
-      if (spanId && log.spanId !== spanId) return false;
-      if (commit && log.commit !== commit) return false;
-
-      return true; 
-    };
-
-    
-    const filtered = logs.filter(passesFilters).sort(
-      (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-    );
-
-    return res.status(200).json(filtered);
+    res.json(filtered);
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error fetching logs:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
-
 
 module.exports = router;
