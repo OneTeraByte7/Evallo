@@ -4,8 +4,6 @@ A sleek React app with Tailwind CSS that lets you **query**, **filter**, and **v
 
 ---
 
----
-
 ## ✨ Features
 
 ### 🔄 Real-Time Log Ingestion
@@ -65,8 +63,9 @@ Beyond the assessment requirements, this project includes **enhanced features** 
 
 These improvements demonstrate attention to detail, performance, and real-world usability — going beyond just functionality into **developer polish**. ✨
 
+---
 ## 📁 Project Structure
-
+---
 /src
 ├── App.jsx # Main app component handling theme, filters, logs, WebSocket
 ├── /components
@@ -79,8 +78,8 @@ These improvements demonstrate attention to detail, performance, and real-world 
 
 
 ---
-
 ## ⚙️ Setup & Run
+---
 
 1. **Clone the repo**
    ```bash
@@ -88,21 +87,28 @@ These improvements demonstrate attention to detail, performance, and real-world 
     ```
 2.**Install Depemdancies**
   ```bash
+  npm install
+  ```
+3. **Start Website**
+```bash
   cd server/
   node server.js
 
   cd client/
   npm start
-  ```
-
+```
+---
 ## 🔧 How It Works
+---
 The frontend fetches logs from /logs endpoint filtered by your inputs.
 When a new log is POSTed to the backend, it broadcasts the log via WebSocket to all connected clients.
 Clients receive new log events and prepend them to the logs list dynamically.
 Filters are reactive — changing them refetches logs.
 The Analytics page aggregates log counts by level and renders visual charts to show trends.
 
+---
 ## 🙌 Acknowledgements
+---
 React & Tailwind CSS for rapid frontend development
 OGL/WebGL for aurora animation magic
 Chart.js / Recharts for analytics visualization
