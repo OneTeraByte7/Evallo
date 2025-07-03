@@ -25,7 +25,7 @@ export default function App() {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
-  // Log Querying UI logic
+  
   const [filters, setFilters] = useState({
     message: "",
     level: "",
@@ -37,7 +37,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Fetch logs on filters change
+  
   useEffect(() => {
     async function fetchLogs() {
       setLoading(true);
@@ -63,7 +63,7 @@ export default function App() {
     fetchLogs();
   }, [filters]);
 
-  // WebSocket for real-time logs
+  
   const ws = useRef(null);
 
   useEffect(() => {
@@ -77,7 +77,7 @@ export default function App() {
       try {
         const msg = JSON.parse(event.data);
         if (msg.type === "new_log") {
-          // Insert new log at the start of the logs array
+          
           setLogs((prevLogs) => [msg.data, ...prevLogs]);
         }
       } catch (e) {
@@ -96,7 +96,7 @@ export default function App() {
 
   return (
     <>
-      {/* Poppins font import */}
+      
       <link
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
         rel="stylesheet"
@@ -124,16 +124,16 @@ export default function App() {
         `}
       </style>
 
-      {/* Container with Aurora Background */}
+
       <div className="relative min-h-screen overflow-hidden">
-        {/* Aurora background component */}
+        
         <div className="absolute inset-0 z-0 pointer-events-none">
           <Aurora />
         </div>
 
         {/* Main content sits above the Aurora */}
         <div className="relative z-10 min-h-screen flex flex-col p-6">
-          {/* Theme toggle */}
+       
           <div className="flex justify-end mb-4">
             <button
               onClick={toggleTheme}
@@ -146,7 +146,7 @@ export default function App() {
           <h1
             className="text-3xl font-bold mb-6 text-center"
             style={{
-              color: "#A3FF84", // bright lime green
+              color: "#A3FF84",
               textShadow: "0 0 8px #7CFF00, 0 0 15px #7CFF00",
             }}
           >

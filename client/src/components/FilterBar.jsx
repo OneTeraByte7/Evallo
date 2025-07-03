@@ -5,7 +5,7 @@ const levels = ["error", "warn", "info", "debug"];
 export default function FilterBar({ filters, setFilters }) {
   const [localSearch, setLocalSearch] = useState(filters.message || "");
 
-  // Debounce search input to avoid too many calls
+  
   useEffect(() => {
     const handler = setTimeout(() => {
       setFilters((f) => ({ ...f, message: localSearch }));
@@ -15,7 +15,7 @@ export default function FilterBar({ filters, setFilters }) {
 
   return (
     <div className="bg-white/20 dark:bg-gray-900/40 backdrop-blur-sm p-4 rounded-md shadow-md flex flex-wrap gap-4 items-end">
-      {/* Search */}
+     
       <div className="flex flex-col">
         <label className="mb-1 font-semibold text-gray-700 dark:text-gray-200">Search Message</label>
         <input
@@ -27,7 +27,7 @@ export default function FilterBar({ filters, setFilters }) {
         />
       </div>
 
-      {/* Level */}
+     
       <div className="flex flex-col">
         <label className="mb-1 font-semibold text-gray-700 dark:text-gray-200">Level</label>
         <select
@@ -44,7 +44,6 @@ export default function FilterBar({ filters, setFilters }) {
         </select>
       </div>
 
-      {/* ResourceId */}
       <div className="flex flex-col">
         <label className="mb-1 font-semibold text-gray-700 dark:text-gray-200">Resource ID</label>
         <input
@@ -56,7 +55,7 @@ export default function FilterBar({ filters, setFilters }) {
         />
       </div>
 
-      {/* Timestamp Start */}
+     
       <div className="flex flex-col">
         <label className="mb-1 font-semibold text-gray-700 dark:text-gray-200">Start Timestamp</label>
         <input
@@ -67,7 +66,7 @@ export default function FilterBar({ filters, setFilters }) {
         />
       </div>
 
-      {/* Timestamp End */}
+     
       <div className="flex flex-col">
         <label className="mb-1 font-semibold text-gray-700 dark:text-gray-200">End Timestamp</label>
         <input
